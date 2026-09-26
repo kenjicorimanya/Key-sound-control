@@ -1,20 +1,24 @@
-﻿# Dependencies
-node_modules/
+# Python & Build cache
 __pycache__/
 *.pyc
-venv/
-env/
-.env
-
-# Build outputs
-dist/
+*.pyo
 build/
-bin/
-obj/
-*.exe
+dist/
+*.spec
 
-# IDE & OS
+# Ocultar carpeta de desarrollo local en Git
+desarrollo/
+src/
+config.json
+
+# IDEs y SO
 .vscode/
 .idea/
 Thumbs.db
 Desktop.ini
+
+# Por defecto ignorar ejecutables en la raíz, pero PERMITIR la carpeta Release
+*.exe
+!Release/
+!Release/*
+!Release/Key-sound-control.exe
