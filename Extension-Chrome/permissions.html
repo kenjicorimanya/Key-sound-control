@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Key-sound-control - Permiso de Audio</title>
+  <style>
+    body {
+      background-color: #1a1b26;
+      color: #c0caf5;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center;
+      user-select: none;
+    }
+    .card {
+      background: #24283b;
+      padding: 36px 30px;
+      border-radius: 12px;
+      border: 1px solid #3b4261;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      max-width: 440px;
+    }
+    h2 {
+      color: #7aa2f7;
+      margin-bottom: 12px;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    p {
+      color: #a9b1d6;
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .status {
+      font-size: 14px;
+      font-weight: 600;
+      color: #e0af68;
+    }
+    .btn-allow {
+      background: #7aa2f7;
+      color: #1a1b26;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+      margin-top: 15px;
+    }
+    .btn-allow:hover {
+      background: #89b4fa;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2><span>🎧</span> Key-sound-control</h2>
+    <p>Haz clic en el botón para que Chrome te permita ver los nombres reales de tus <b>Altavoces</b> y <b>Auriculares</b>.</p>
+    <div id="status" class="status">Listo para solicitar permiso</div>
+    <button class="btn-allow" id="btnAllow">Conceder Permiso a Chrome</button>
+  </div>
+  <script src="permissions.js"></script>
+</body>
+</html>

@@ -13,35 +13,39 @@ document.addEventListener('DOMContentLoaded', async () => {
   let isMuted = false;
 
   // 1. Get current active tab
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  activeTab = tab;
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    activeTab = tab;
 
-  if (activeTab) {
-    tabTitleEl.textContent = activeTab.title || activeTab.url;
-    if (activeTab.url && activeTab.url.includes('youtube.com')) {
-      tabIconEl.textContent = '▶️';
-    } else if (activeTab.url && activeTab.url.includes('twitch.tv')) {
-      tabIconEl.textContent = '🟣';
-    } else if (activeTab.url && activeTab.url.includes('spotify.com')) {
-      tabIconEl.textContent = '🎵';
-    } else {
-      tabIconEl.textContent = '🌐';
-    }
+    if (activeTab) {
+      tabTitleEl.textContent = activeTab.title || activeTab.url;
+      if (activeTab.url && activeTab.url.includes('youtube.com')) {
+        tabIconEl.textContent = '▶️';
+      } else if (activeTab.url && activeTab.url.includes('twitch.tv')) {
+        tabIconEl.textContent = '🟣';
+      } else if (activeTab.url && activeTab.url.includes('spotify.com')) {
+        tabIconEl.textContent = '🎵';
+      } else {
+        tabIconEl.textContent = '🌐';
+      }
 
-    // Load saved settings for this tab from storage
-    const storageKey = `tab_${activeTab.id}`;
-    const data = await chrome.storage.local.get(storageKey);
-    if (data[storageKey]) {
-      activeDeviceId = data[storageKey].deviceId || '';
-      if (data[storageKey].volume !== undefined) {
-        volSlider.value = data[storageKey].volume;
-        volLabel.textContent = `${data[storageKey].volume}%`;
-      }
-      if (data[storageKey].muted !== undefined) {
-        isMuted = data[storageKey].muted;
-        btnMute.textContent = isMuted ? '🔇' : '🔊';
+      // Load saved settings for this tab from storage
+      const storageKey = `tab_${activeTab.id}`;
+      const data = await chrome.storage.local.get(storageKey);
+      if (data[storageKey]) {
+        activeDeviceId = data[storageKey].deviceId || '';
+        if (data[storageKey].volume !== undefined) {
+          volSlider.value = data[storageKey].volume;
+          volLabel.textContent = `${data[storageKey].volume}%`;
+        }
+        if (data[storageKey].muted !== undefined) {
+          isMuted = data[storageKey].muted;
+          btnMute.textContent = isMuted ? '🔇' : '🔊';
+        }
       }
     }
+  } catch (e) {
+    console.error("Error al obtener la pestaña activa:", e);
   }
 
   // Helper: Device icon
@@ -59,8 +63,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       const devices = await navigator.mediaDevices.enumerateDevices();
       const audioOutputs = devices.filter(d => d.kind === 'audiooutput');
 
-      // Check if labels are empty (requires permission in Chromium)
-      const hasLabels = audioOutputs.some(d => d.label && d.label.length > 0);
+      // Check if labels are missing/empty
+      const hasLabels = audioOutputs.some(d => d.label && d.label.trim().length > 0);
       if (!hasLabels && audioOutputs.length > 0) {
         permissionBox.style.display = 'block';
       } else {
@@ -71,13 +75,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       // Default system output option
       const defaultItem = document.createElement('div');
-      defaultItem.className = `device-item ${(!activeDeviceId || activeDeviceId === 'default') ? 'active' : ''}`;
+      const isDefaultActive = (!activeDeviceId || activeDeviceId === 'default');
+      defaultItem.className = `device-item ${isDefaultActive ? 'active' : ''}`;
       defaultItem.innerHTML = `
         <div class="device-details">
           <span>🌐</span>
           <span class="device-name">Salida predeterminada de Windows</span>
         </div>
-        ${(!activeDeviceId || activeDeviceId === 'default') ? '<span class="check-icon">✓ Activo</span>' : ''}
+        ${isDefaultActive ? '<span class="check-icon">✓ Activo</span>' : ''}
       `;
       defaultItem.addEventListener('click', () => applyRoute('default'));
       deviceListEl.appendChild(defaultItem);
@@ -87,7 +92,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       audioOutputs.forEach(dev => {
         if (dev.deviceId === 'default') return;
 
-        const name = dev.label || `Salida de audio ${counter++}`;
+        const name = (dev.label && dev.label.trim().length > 0) ? dev.label : `Salida de audio ${counter++}`;
         const isSelected = (activeDeviceId === dev.deviceId);
         const icon = getDeviceIcon(name);
 
@@ -109,16 +114,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // 3. Permission trigger for device names
-  btnPermission.addEventListener('click', async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.getTracks().forEach(track => track.stop());
-      permissionBox.style.display = 'none';
-      await loadDevices();
-    } catch (e) {
-      alert("No se pudo obtener el permiso. Puedes seguir seleccionando las salidas.");
-    }
+  // 3. Permission trigger for device names (opens tab to avoid popup crash)
+  btnPermission.addEventListener('click', () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL('permissions.html') });
+    window.close();
   });
 
   // 4. Apply Route to Active Tab
@@ -126,39 +125,41 @@ document.addEventListener('DOMContentLoaded', async () => {
     activeDeviceId = deviceId;
     
     // Save in storage for this tab
-    const storageKey = `tab_${activeTab.id}`;
-    await chrome.storage.local.set({
-      [storageKey]: {
-        deviceId: activeDeviceId,
-        volume: parseInt(volSlider.value),
-        muted: isMuted
-      }
-    });
-
-    // Execute redirection directly on tab media elements
     if (activeTab && activeTab.id) {
+      const storageKey = `tab_${activeTab.id}`;
+      await chrome.storage.local.set({
+        [storageKey]: {
+          deviceId: activeDeviceId,
+          volume: parseInt(volSlider.value),
+          muted: isMuted
+        }
+      });
+
+      // Execute redirection directly on tab media elements
       try {
         await chrome.scripting.executeScript({
           target: { tabId: activeTab.id },
           func: (targetSinkId) => {
             window.__keySoundControlSinkId = targetSinkId;
+            const target = (targetSinkId === 'default' ? '' : targetSinkId);
             const mediaEls = document.querySelectorAll('video, audio');
             mediaEls.forEach(el => {
               if (typeof el.setSinkId === 'function') {
-                el.setSinkId(targetSinkId === 'default' ? '' : targetSinkId)
-                  .then(() => console.log('Key-sound-control: sinkId aplicado con éxito:', targetSinkId))
-                  .catch(err => console.error('Key-sound-control: error setSinkId:', err));
+                el.setSinkId(target)
+                  .then(() => console.log('Key-sound-control: sinkId aplicado:', target))
+                  .catch(err => console.error('Key-sound-control setSinkId error:', err));
               }
             });
 
-            // Observer for dynamically added videos (YouTube autoplay, ads, etc.)
+            // Observer for dynamically added videos
             if (!window.__keySoundControlObserver) {
               window.__keySoundControlObserver = new MutationObserver((mutations) => {
                 mutations.forEach(m => {
                   m.addedNodes.forEach(node => {
                     if (node.tagName === 'VIDEO' || node.tagName === 'AUDIO') {
                       if (typeof node.setSinkId === 'function' && window.__keySoundControlSinkId) {
-                        node.setSinkId(window.__keySoundControlSinkId === 'default' ? '' : window.__keySoundControlSinkId);
+                        const curTarget = (window.__keySoundControlSinkId === 'default' ? '' : window.__keySoundControlSinkId);
+                        node.setSinkId(curTarget).catch(() => {});
                       }
                     }
                   });
@@ -194,14 +195,14 @@ document.addEventListener('DOMContentLoaded', async () => {
           args: [val / 100.0]
         });
       } catch (err) {}
-    }
 
-    // Save
-    const storageKey = `tab_${activeTab.id}`;
-    const data = await chrome.storage.local.get(storageKey);
-    const existing = data[storageKey] || {};
-    existing.volume = val;
-    await chrome.storage.local.set({ [storageKey]: existing });
+      // Save
+      const storageKey = `tab_${activeTab.id}`;
+      const data = await chrome.storage.local.get(storageKey);
+      const existing = data[storageKey] || {};
+      existing.volume = val;
+      await chrome.storage.local.set({ [storageKey]: existing });
+    }
   });
 
   // 6. Mute Button
@@ -221,14 +222,14 @@ document.addEventListener('DOMContentLoaded', async () => {
           args: [isMuted]
         });
       } catch (err) {}
-    }
 
-    // Save
-    const storageKey = `tab_${activeTab.id}`;
-    const data = await chrome.storage.local.get(storageKey);
-    const existing = data[storageKey] || {};
-    existing.muted = isMuted;
-    await chrome.storage.local.set({ [storageKey]: existing });
+      // Save
+      const storageKey = `tab_${activeTab.id}`;
+      const data = await chrome.storage.local.get(storageKey);
+      const existing = data[storageKey] || {};
+      existing.muted = isMuted;
+      await chrome.storage.local.set({ [storageKey]: existing });
+    }
   });
 
   // Initial load
