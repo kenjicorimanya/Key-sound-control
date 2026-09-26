@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Key-sound-control</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      width: 340px;
+      background-color: #1a1b26;
+      color: #c0caf5;
+      padding: 14px;
+      user-select: none;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #292e42;
+    }
+    .header h1 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #7aa2f7;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .badge {
+      font-size: 10px;
+      background: #24283b;
+      color: #bb9af7;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .tab-info {
+      background: #24283b;
+      padding: 8px 10px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tab-icon {
+      font-size: 16px;
+    }
+    .tab-title {
+      font-size: 11px;
+      color: #a9b1d6;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 270px;
+      font-weight: 500;
+    }
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #565f89;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .device-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 14px;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+    .device-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #24283b;
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+    }
+    .device-item:hover {
+      background: #292e42;
+      border-color: #3b4261;
+    }
+    .device-item.active {
+      background: #1f2335;
+      border-color: #7aa2f7;
+    }
+    .device-details {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow: hidden;
+    }
+    .device-name {
+      font-size: 11px;
+      color: #c0caf5;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 220px;
+    }
+    .device-item.active .device-name {
+      font-weight: 600;
+      color: #7aa2f7;
+    }
+    .check-icon {
+      font-size: 11px;
+      color: #9ece6a;
+      font-weight: bold;
+    }
+    .controls {
+      background: #24283b;
+      padding: 10px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .vol-slider {
+      flex: 1;
+      accent-color: #7aa2f7;
+      cursor: pointer;
+    }
+    .vol-label {
+      font-size: 11px;
+      font-family: monospace;
+      color: #7aa2f7;
+      width: 32px;
+      text-align: right;
+    }
+    .btn-mute {
+      background: none;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 2px 4px;
+    }
+    .permission-box {
+      display: none;
+      background: #2d2038;
+      border: 1px solid #bb9af7;
+      padding: 8px 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      font-size: 10px;
+      color: #e0af68;
+    }
+    .btn-permission {
+      margin-top: 5px;
+      background: #7aa2f7;
+      color: #1a1b26;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 10px;
+      width: 100%;
+    }
+    .footer {
+      margin-top: 12px;
+      text-align: center;
+      font-size: 10px;
+      color: #565f89;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1><span>🎧</span> Key-sound-control</h1>
+    <span class="badge">Pestaña</span>
+  </div>
+
+  <div class="tab-info">
+    <span class="tab-icon" id="tabIcon">🌐</span>
+    <span class="tab-title" id="tabTitle">Cargando pestaña...</span>
+  </div>
+
+  <div class="permission-box" id="permissionBox">
+    <span>Para ver los nombres completos de tus altavoces/auriculares, Chrome requiere conceder permiso de audio.</span>
+    <button class="btn-permission" id="btnPermission">Activar nombres de dispositivos</button>
+  </div>
+
+  <div class="section-title">Salida de audio para esta pestaña:</div>
+  <div class="device-list" id="deviceList">
+    <div style="font-size: 11px; color: #565f89; text-align: center; padding: 10px;">Buscando salidas de audio...</div>
+  </div>
+
+  <div class="section-title">Volumen de esta pestaña:</div>
+  <div class="controls">
+    <button class="btn-mute" id="btnMute">🔊</button>
+    <input type="range" class="vol-slider" id="volSlider" min="0" max="100" value="100">
+    <span class="vol-label" id="volLabel">100%</span>
+  </div>
+
+  <div class="footer">
+    Atajo rápido: <b style="color:#bb9af7;">Alt + Shift + A</b>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

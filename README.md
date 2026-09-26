@@ -1,38 +1,33 @@
 # Key-sound-control 🎧🔊
 
-**Key-sound-control** es una aplicación moderna y ultraligera para Windows que se ejecuta en segundo plano en la bandeja del sistema (System Tray), permitiéndote **enrutar y regular el audio de programas y ventanas individuales** con la máxima comodidad.
+**Key-sound-control** es la solución definitiva para Windows para **enrutar y regular el audio de programas y pestañas web individuales** con total independencia.
+
+Permite, por ejemplo, que una pestaña de **YouTube suene por los altavoces**, otra pestaña de **Twitch suene por los auriculares**, y las demás pestañas y programas continúen en la **salida predeterminada**.
 
 ---
 
-## ⚡ Descarga y Uso Rápido (Sin Instalar Nada)
+## 📦 Componentes del Proyecto
 
-No necesitas instalar Python ni dependencias. La versión lista para usar se encuentra en la carpeta [`Release/`](./Release):
-
-1. Descarga el ejecutable: **[`Release/Key-sound-control.exe`](./Release/Key-sound-control.exe)**
-2. Haz doble clic para iniciarlo.
-3. Se colocará en la barra de tareas al lado del reloj de Windows (System Tray).
+### 1. 🪟 Aplicación de Escritorio (`Release/Key-sound-control.exe`)
+* **Ejecutable sin instalación:** [`Release/Key-sound-control.exe`](./Release/Key-sound-control.exe)
+* **Selector de salida para programas:** (`Alt + A` o botón de ratón). Enruta programas completos (Juegos, Spotify, Discord, reproductores, etc.) al dispositivo deseado.
+* **Mezclador de volumen flotante:** (`Alt + V` o botón de ratón). Controla volúmenes maestros y de apps con la rueda del ratón y silencia con un clic.
+* **Soporte para botones extra de ratón (Mouse 4/5) y macros.**
 
 ---
 
-## 🚀 Atajos y Funciones
+### 2. 🌐 Mini Extensión para el Navegador (`Extension-Chrome/`)
+* **Ubicación:** Carpeta [`Extension-Chrome/`](./Extension-Chrome)
+* **Compatibilidad:** Google Chrome, Microsoft Edge, Brave, Opera.
+* **Propósito:** Control **pestaña por pestaña**. Permite redirigir el audio de cualquier pestaña individual (YouTube, Spotify Web, Twitch, Meet) a una salida de audio diferente mediante la API nativa de Chromium (`setSinkId`).
+* **Atajo en el navegador:** `Alt + Shift + A`
 
-### 1. 🔀 Selector Rápido de Salida (Router HUD)
-* **Atajo:** `Alt + A` *(o el botón de tu ratón que elijas)*.
-* Detecta la ventana activa (ej. una ventana de Google Chrome con música o video).
-* Despliega un menú flotante en tu puntero:
-  * Elige la salida de audio (**Altavoces**, **Auriculares**, **Monitor HDMI**, etc.) con un clic o con números (`1`, `2`, `3`...).
-  * Presiona `0` para restablecer al audio predeterminado del sistema.
-
-### 2. 🎚️ Mezclador de Volumen Flotante (Mixer HUD)
-* **Atajo:** `Alt + V` *(o el botón de tu ratón que elijas)*.
-* Abre un mezclador moderno en la posición de tu cursor:
-  * **Dispositivos de Salida:** Regula el volumen maestro de todos tus altavoces y auriculares.
-  * **Aplicaciones Activas:** Regula el volumen individual de cada programa que esté emitiendo sonido (Chrome, Spotify, Discord, Juegos, etc.).
-  * **Control con la Rueda del Ratón:** Coloca el cursor sobre cualquier barra y gira la rueda del ratón para subir o bajar el volumen suavemente.
-  * **Mute Rápido:** Clic en `🔊` / `🔇` para silenciar al instante.
-
-### 3. 🖱️ Grabador de Botones Extra del Ratón y Macros
-* En la ventana de **Configuración** puedes hacer clic en "Grabar" y presionar cualquier tecla o botón de tu ratón (`Mouse 4 / XButton 1`, `Mouse 5 / XButton 2`, etc.).
+#### Cómo instalar la extensión en 1 minuto:
+1. Abre `chrome://extensions/` (o `edge://extensions/`).
+2. Activa el **"Modo de desarrollador"** (arriba a la derecha).
+3. Haz clic en **"Cargar descomprimida"**.
+4. Selecciona la carpeta **`Extension-Chrome`**.
+5. ¡Listo! Al abrir cualquier video de YouTube o música, pulsa `Alt + Shift + A` o haz clic en el icono para asignarle su propio altavoz o auricular.
 
 ---
 

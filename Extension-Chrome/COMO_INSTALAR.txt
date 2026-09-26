@@ -1,0 +1,30 @@
+========================================================================
+  CÓMO INSTALAR LA EXTENSIÓN EN GOOGLE CHROME / MICROSOFT EDGE / BRAVE
+========================================================================
+
+1. Abre tu navegador (Google Chrome, Edge, Brave, Opera, etc.).
+2. En la barra de direcciones escribe:
+   - Para Chrome: chrome://extensions/
+   - Para Edge: edge://extensions/
+   - Para Brave: brave://extensions/
+   y presiona Enter.
+
+3. En la esquina superior derecha activa el interruptor:
+   "Modo de desarrollador" (Developer mode).
+
+4. Haz clic en el botón:
+   "Cargar descomprimida" (Load unpacked).
+
+5. Selecciona esta carpeta:
+   "Extension-Chrome"
+
+¡Listo! Ya aparecerá el icono de Key-sound-control en tu barra de extensiones.
+
+========================================================================
+  CÓMO USARLO PESTAÑA POR PESTAÑA
+========================================================================
+1. Ve a cualquier pestaña (ej. YouTube con música).
+2. Presiona el atajo: Alt + Shift + A (o haz clic en el icono de la extensión).
+3. Selecciona la salida deseada (ej. Altavoces).
+4. Abre otra pestaña (ej. Twitch u otro video) y selecciona otra salida (ej. Auriculares).
+5. Las demás pestañas continuarán sonando por la salida predeterminada.
