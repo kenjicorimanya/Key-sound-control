@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnPermission = document.getElementById('btnPermission');
 
   let activeTab = null;
-  let activeDeviceId = '';
+  let activeDeviceId = 'default';
   let isMuted = false;
 
   // 1. Get current active tab
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const storageKey = `tab_${activeTab.id}`;
       const data = await chrome.storage.local.get(storageKey);
       if (data[storageKey]) {
-        activeDeviceId = data[storageKey].deviceId || '';
+        activeDeviceId = data[storageKey].deviceId || 'default';
         if (data[storageKey].volume !== undefined) {
           volSlider.value = data[storageKey].volume;
           volLabel.textContent = `${data[storageKey].volume}%`;
@@ -120,11 +120,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.close();
   });
 
-  // 4. Apply Route to Active Tab
+  // 4. Apply Route to Active Tab via Background TabCapture & Offscreen setSinkId
   async function applyRoute(deviceId) {
     activeDeviceId = deviceId;
     
-    // Save in storage for this tab
     if (activeTab && activeTab.id) {
       const storageKey = `tab_${activeTab.id}`;
       await chrome.storage.local.set({
@@ -135,44 +134,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       });
 
-      // Execute redirection directly on tab media elements
-      try {
-        await chrome.scripting.executeScript({
-          target: { tabId: activeTab.id },
-          func: (targetSinkId) => {
-            window.__keySoundControlSinkId = targetSinkId;
-            const target = (targetSinkId === 'default' ? '' : targetSinkId);
-            const mediaEls = document.querySelectorAll('video, audio');
-            mediaEls.forEach(el => {
-              if (typeof el.setSinkId === 'function') {
-                el.setSinkId(target)
-                  .then(() => console.log('Key-sound-control: sinkId aplicado:', target))
-                  .catch(err => console.error('Key-sound-control setSinkId error:', err));
-              }
-            });
-
-            // Observer for dynamically added videos
-            if (!window.__keySoundControlObserver) {
-              window.__keySoundControlObserver = new MutationObserver((mutations) => {
-                mutations.forEach(m => {
-                  m.addedNodes.forEach(node => {
-                    if (node.tagName === 'VIDEO' || node.tagName === 'AUDIO') {
-                      if (typeof node.setSinkId === 'function' && window.__keySoundControlSinkId) {
-                        const curTarget = (window.__keySoundControlSinkId === 'default' ? '' : window.__keySoundControlSinkId);
-                        node.setSinkId(curTarget).catch(() => {});
-                      }
-                    }
-                  });
-                });
-              });
-              window.__keySoundControlObserver.observe(document.body, { childList: true, subtree: true });
-            }
-          },
-          args: [activeDeviceId]
-        });
-      } catch (err) {
-        console.error("Error al inyectar script:", err);
-      }
+      // Dispatch route command to background
+      chrome.runtime.sendMessage({
+        action: 'ROUTE_TAB',
+        tabId: activeTab.id,
+        deviceId: activeDeviceId,
+        volume: parseInt(volSlider.value),
+        muted: isMuted
+      }, (res) => {
+        console.log('Key-sound-control ruta aplicada:', res);
+      });
     }
 
     await loadDevices();
@@ -184,19 +155,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     volLabel.textContent = `${val}%`;
 
     if (activeTab && activeTab.id) {
-      try {
-        await chrome.scripting.executeScript({
-          target: { tabId: activeTab.id },
-          func: (volFraction) => {
-            document.querySelectorAll('video, audio').forEach(el => {
-              el.volume = volFraction;
-            });
-          },
-          args: [val / 100.0]
-        });
-      } catch (err) {}
+      chrome.runtime.sendMessage({
+        action: 'SET_VOLUME',
+        tabId: activeTab.id,
+        volume: val
+      });
 
-      // Save
       const storageKey = `tab_${activeTab.id}`;
       const data = await chrome.storage.local.get(storageKey);
       const existing = data[storageKey] || {};
@@ -211,19 +175,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     btnMute.textContent = isMuted ? '🔇' : '🔊';
 
     if (activeTab && activeTab.id) {
-      try {
-        await chrome.scripting.executeScript({
-          target: { tabId: activeTab.id },
-          func: (muteState) => {
-            document.querySelectorAll('video, audio').forEach(el => {
-              el.muted = muteState;
-            });
-          },
-          args: [isMuted]
-        });
-      } catch (err) {}
+      chrome.runtime.sendMessage({
+        action: 'SET_MUTE',
+        tabId: activeTab.id,
+        muted: isMuted
+      });
 
-      // Save
       const storageKey = `tab_${activeTab.id}`;
       const data = await chrome.storage.local.get(storageKey);
       const existing = data[storageKey] || {};
